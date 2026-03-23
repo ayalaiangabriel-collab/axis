@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Builder - Acceso Alumnos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #050505;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 30px 15px;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    :root {
+      --bg-body: #050505;
+      --card-bg: #101010;
+      --gold-primary: #FFD700;
+      --gold-dim: #b89b00;
+      --gold-glow-border: 0 0 15px rgba(255, 215, 0, 0.3);
+      --gold-glow-text: 0 0 10px rgba(255, 215, 0, 0.4);
+      --text-main: #ffffff;
+      --text-muted: #999;
+      --input-bg: #151515;
+      --input-border: #333;
+      --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .app-builder-container {
+      background-color: var(--bg-body);
+      background-image: radial-gradient(circle at 50% -20%, rgba(255, 215, 0, 0.08), transparent 60%);
+      color: var(--text-main);
+      padding: 50px 30px;
+      font-family: var(--font-main);
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      border-radius: 16px;
+      min-height: 600px;
+      position: relative;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      box-shadow: 0 0 40px rgba(255, 215, 0, 0.05), inset 0 0 20px rgba(255, 215, 0, 0.02);
+    }
+
+    .top-controls {
+      position: absolute;
+      top: 25px;
+      right: 25px;
+      z-index: 10;
+    }
+
+    .control-btn {
+      background: rgba(0,0,0,0.5);
+      color: var(--text-muted);
+      border: 1px solid #444;
+      padding: 8px 16px;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      backdrop-filter: blur(5px);
+    }
+    .control-btn:hover {
+      border-color: #ff5555;
+      color: #ff5555;
+      box-shadow: 0 0 10px rgba(255, 85, 85, 0.2);
+    }
+
+    .login-container {
+      text-align: center;
+      padding: 80px 20px;
+      animation: fadeIn 0.8s ease;
+    }
+    .lock-icon {
+      width: 90px;
+      margin-bottom: 30px;
+      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+    }
+    .login-title {
+      font-size: 2rem;
+      font-weight: 200;
+      letter-spacing: 5px;
+      color: var(--gold-primary);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      text-shadow: var(--gold-glow-text);
+    }
+    .login-input {
+      width: 100%;
+      max-width: 320px;
+      padding: 15px;
+      font-size: 1.2rem;
+      text-align: center;
+      border-radius: 50px;
+      border: 1px solid var(--gold-dim);
+      background: #000;
+      color: #fff;
+      margin-bottom: 30px;
+      outline: none;
+      letter-spacing: 4px;
+      transition: 0.3s;
+      box-shadow: var(--gold-glow-border);
+    }
+    .login-input:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+    }
+
+    .error-msg {
+      color: #ff5555;
+      margin-top: 15px;
+      font-size: 0.9rem;
+      display: none;
+      letter-spacing: 1px;
+    }
+
+    #main-app-content { display: none; }
+
+    .wireframe-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 50px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .wf-block {
+      flex: 1;
+      height: 45px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 4px;
+      border: 1px solid #333;
+      position: relative;
+      transition: all 0.4s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      cursor: default;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .wf-block.active {
+      background: rgba(255, 215, 0, 0.1);
+      color: var(--gold-primary);
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+      transform: translateY(-3px);
+    }
+
+    .step-card {
+      background: var(--card-bg);
+      padding: 45px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255, 215, 0, 0.05);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .step-title {
+      color: var(--text-main);
+      font-weight: 200;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 35px;
+      font-size: 1.5rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 20px;
+    }
+    .step-title span {
+      color: var(--gold-primary);
+      font-weight: 700;
+      text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .form-group { margin-bottom: 25px; }
+
+    .form-label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 500;
+      color: #ccc;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 16px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      color: var(--text-main);
+      font-size: 1rem;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--gold-primary);
+      outline: none;
+      background: #1a1a1a;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+    }
+
+    .form-input::placeholder, .form-textarea::placeholder { color: #555; }
+
+    .input-error {
+      border-color: #ff4444 !important;
+      background: rgba(255,68,68,0.05) !important;
+      box-shadow: 0 0 10px rgba(255, 68, 68, 0.2) !important;
+    }
+
+    .checkbox-wrapper {
+      display: flex; align-items: center; gap: 15px;
+      background: rgba(255,255,255,0.02);
+      padding: 15px; border-radius: 6px; border: 1px solid var(--input-border);
+      margin-bottom: 20px; cursor: pointer; transition: 0.3s;
+    }
+    .checkbox-wrapper:hover { border-color: var(--gold-dim); }
+    .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--gold-primary); }
+
+    .bonus-values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+      padding: 20px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 8px;
+      border: 1px dashed #444;
+    }
+    .mini-price-input {
+      text-align: center;
+      border: 1px solid #444;
+      background: #080808;
+      color: var(--gold-primary);
+      font-weight: bold;
+    }
+    .total-value-display {
+      text-align: right;
+      font-size: 1.1rem;
+      color: var(--gold-primary);
+      margin-top: 15px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(255,215,0,0.3);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #FFD700 0%, #dcb000 100%);
+      color: #000;
+      border: none;
+      padding: 18px 40px;
+      font-size: 1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-radius: 50px;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 5px 25px rgba(212, 175, 55, 0.25);
+      transition: all 0.3s ease;
+      margin-top: 25px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-gold:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 35px rgba(212, 175, 55, 0.4);
+      filter: brightness(1.1);
+    }
+    .btn-gold:disabled {
+      background: #333;
+      color: #666;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid #444;
+      color: #888;
+      margin-top: 15px;
+      padding: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: 0.3s;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .btn-secondary:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,0.05); }
+
+    .result-area {
+      display: none; margin-top: 30px; background: #080808;
+      padding: 30px; border-radius: 12px; border: 1px solid var(--gold-dim);
+      box-shadow: 0 0 30px rgba(255,215,0,0.05);
+    }
+    .prompt-output {
+      width: 100%; height: 300px;
+      background: #000; color: #4af626;
+      font-family: 'Courier New', monospace;
+      padding: 20px; border: 1px solid #222;
+      resize: none; font-size: 0.9rem; border-radius: 6px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .hidden { display: none !important; }
+
+    .progress-bar { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 0 5px; }
+    .progress-step { width: 19%; height: 4px; background: #222; border-radius: 2px; transition: background 0.4s; }
+    .progress-step.active { background: var(--gold-primary); box-shadow: 0 0 10px rgba(212, 175, 55, 0.6); }
+
+    @media (max-width: 600px) {
+      .app-builder-container { padding: 30px 15px; }
+      .step-card { padding: 25px 18px; }
+      .wireframe-container { gap: 4px; }
+      .wf-block { font-size: 0.55rem; letter-spacing: 0; height: 38px; }
+      .login-title { font-size: 1.5rem; letter-spacing: 3px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app_container" class="app-builder-container">
+
+  <div class="top-controls">
+    <button onclick="borrarDatos()" class="control-btn" title="Borrar todo y empezar de cero">
+      REINICIAR ↻
+    </button>
+  </div>
+
+  <div id="login-gate" class="login-container">
+    <center><img src="https://cdn.shopify.com/s/files/1/0788/2847/0488/files/LogosIconos_3.png?v=1766975544" class="lock-icon" onerror="this.style.display='none'"></center>
+    <h2 class="login-title">Acceso Alumnos</h2>
+    <p style="color:var(--text-muted); margin-bottom:30px; font-weight:300;">Introduce tu llave de acceso.</p>
+    <input type="password" id="access_password" class="login-input" placeholder="CONTRASEÑA">
+    <br>
+    <button class="btn-gold" style="width: 100%; max-width: 350px;" onclick="verificarAcceso()">ENTRAR</button>
+    <div id="login-error" class="error-msg">⛔ Contraseña incorrecta</div>
+  </div>
+
+  <div id="main-app-content">
+
+    <div class="wireframe-container">
+      <div id="wf-1" class="wf-block active">PROMESA</div>
+      <div id="wf-2" class="wf-block">DOLORES</div>
+      <div id="wf-3" class="wf-block">OFERTA</div>
+      <div id="wf-4" class="wf-block">BONUS</div>
+      <div id="wf-5" class="wf-block">TESTIMONIOS</div>
+    </div>
+
+    <div class="progress-bar">
+      <div id="p1" class="progress-step active"></div>
+      <div id="p2" class="progress-step"></div>
+      <div id="p3" class="progress-step"></div>
+      <div id="p4" class="progress-step"></div>
+      <div id="p5" class="progress-step"></div>
+    </div>
+
+    <div id="step-1-card" class="step-card">
+      <h2 class="step-title">1. Configuración <span>Principal</span></h2>
+      <div class="form-group">
+        <label class="form-label">¿Qué tipo de Infoproducto es?</label>
+        <input type="text" id="tipo_producto" class="form-input save-me" placeholder="Ej: Ebook de Recetas, Curso de Inglés...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción del Producto</label>
+        <textarea id="descripcion_producto" class="form-textarea save-me" rows="3" placeholder="¿Qué problema resuelve? ¿Para quién es exactamente?"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Elemento Visual Hero <span style="font-size:0.8em; color:var(--gold-dim); font-weight:normal;">(Si lo dejas vacío, la IA elegirá una imagen por ti)</span></label>
+        <select id="media_selector" class="form-select save-me" onchange="toggleMediaInput()">
+          <option value="vsl">Video VSL (Vimeo)</option>
+          <option value="mockup">Imagen Mockup</option>
+        </select>
+      </div>
+      <div class="form-group" id="input-vsl-group">
+        <label class="form-label">ID del Video (Vimeo)</label>
+        <input type="text" id="id_vsl" class="form-input save-me" placeholder="Ej: 123456789">
+      </div>
+      <div class="form-group hidden" id="input-mockup-group">
+        <label class="form-label">URL de la Imagen (Mockup)</label>
+        <input type="text" id="id_mockup" class="form-input save-me" placeholder="https://cdn.shopify...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Variant ID (Producto Shopify) <span style="color:#ff4444">* Obligatorio</span></label>
+        <input type="text" id="variant_id" class="form-input save-me" placeholder="Ej: 43290122..." oninput="validarVariant(this)">
+        <small id="variant-error" style="color:#ff4444; display:none; margin-top:5px;">⚠️ Necesitas este ID para cobrar.</small>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="color:var(--gold-primary);">Acción del Botón CTA</label>
+        <select id="tipo_boton" class="form-select save-me">
+          <option value="checkout">⚡ Directo a Checkout (Pago Inmediato)</option>
+          <option value="cart">🛒 Agregar al Carrito (Multi-compra)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estética & Color</label>
+        <label class="checkbox-wrapper">
+          <input type="checkbox" id="ai_color_check" class="save-me-check" onchange="toggleColorSettings()">
+          <span style="font-size:0.95rem; color:var(--text-main);">🤖 Dejar que la IA decida el color ideal</span>
+        </label>
+        <div id="manual_color_container" style="display:flex; gap:15px; align-items:center; margin-top:10px; padding-left:10px;">
+          <input type="color" id="color_picker" class="save-me" value="#121212" onchange="document.getElementById('hex_label').innerText = this.value" style="border:none; width:40px; height:40px; cursor:pointer; background:none; border-radius:50%;">
+          <span id="hex_label" style="font-family:monospace; color:var(--gold-primary); font-size:1.1rem;">#121212</span>
+        </div>
+      </div>
+      <button class="btn-gold" id="btn-gen-step1" onclick="generarPrompt(1)">Generar Paso 1</button>
+    </div>
+
+    <div id="step-2-card" class="step-card hidden">
+      <h2 class="step-title">2. Dolores & <span>Soluciones</span></h2>
+      <div class="form-group">
+        <label class="form-label">Puntos de Dolor</label>
+        <select id="qty_dolores" class="form-select save-me">
+          <option value="3">3 Puntos</option>
+          <option value="4">4 Puntos</option>
+          <option value="5" selected>5 Puntos</option>
+          <option value="6">6 Puntos</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Beneficios</label>
+        <select id="qty_beneficios" class="form-select save-me">
+          <option value="3">3 Beneficios</option>
+          <option value="4">4 Beneficios</option>
+          <option value="5" selected>5 Beneficios</option>
+          <option value="6">6 Beneficios</option>
+        </select>
+      </div>
+      <button class="btn-gold" onclick="generarPrompt(2)">Generar Paso 2</button>
+      <button class="btn-secondary" onclick="navegar(1)">Volver Atrás</button>
+    </div>
+
+    <div id="step-3-card" class="step-card hidden">
+      <h2 class="step-title">3. La <span>Oferta</span> Irresistible</h2>
+      <div class="form-group">
+        <label class="form-label">Precio Original (Tachado)</label>
+        <input type="text" id="precio_tachado" class="form-input save-me" placeholder="Ej: $197 USD">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Precio Oferta (Real)</label>
+        <input type="text" id="precio_oferta" class="form-input save-me" placeholder="Ej: $47 USD">
+      </div>
+      <button class="btn-gold" onclick="generarPrompt(3)">Generar Paso 3</button>
+      <button class="btn-secondary" onclick="navegar(2)">Volver Atrás</button>
+    </div>
+
+    <div id="step-4-card" class="step-card hidden">
+      <h2 class="step-title">4. Stack de <span>Bonus</span></h2>
+      <div class="form-group">
+        <label class="form-label">¿Cuántos regalos incluyes?</label>
+        <select id="cantidad_bonus" class="form-select save-me" onchange="renderBonusInputs()">
+          <option value="1">1 Bonus</option>
+          <option value="2">2 Bonus</option>
+          <option value="3" selected>3 Bonus</option>
+          <option value="4">4 Bonus</option>
+          <option value="5">5 Bonus</option>
+          <option value="6">6 Bonus</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="color:var(--gold-primary); border-bottom:1px solid #333; padding-bottom:10px;">Calculadora de Valor Percibido ($)</label>
+        <div id="bonus-values-container" class="bonus-values-grid"></div>
+        <div id="total-value-display" class="total-value-display">VALOR REAL: $0</div>
+      </div>
+
+      <button class="btn-gold" onclick="generarPrompt(4)">Generar Paso 4</button>
+      <button class="btn-secondary" onclick="navegar(3)">Volver Atrás</button>
+    </div>
+
+    <div id="step-5-card" class="step-card hidden">
+      <h2 class="step-title">5. Prueba <span>Social</span></h2>
+      <div class="form-group">
+        <label class="form-label">Número de Testimonios</label>
+        <select id="cantidad_testimonios" class="form-select save-me">
+          <option value="3">3 Testimonios</option>
+          <option value="6" selected>6 Testimonios</option>
+          <option value="9">9 Testimonios</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Preguntas Frecuentes (FAQ)</label>
+        <select id="cantidad_faq" class="form-select save-me">
+          <option value="3">3 Preguntas</option>
+          <option value="5" selected>5 Preguntas</option>
+          <option value="7">7 Preguntas</option>
+          <option value="10">10 Preguntas</option>
+        </select>
+      </div>
+      <button class="btn-gold" onclick="generarPrompt(5)">Generar Prompt Final</button>
+      <button class="btn-secondary" onclick="navegar(4)">Volver Atrás</button>
+    </div>
+
+    <div id="result-area" class="result-area">
+      <label class="form-label" style="color:var(--gold-primary); margin-bottom:15px; display:block;">Tu Prompt Maestro está listo:</label>
+      <textarea id="final-prompt" class="prompt-output" readonly></textarea>
+
+      <div style="display:flex; gap:15px; margin-top:20px;">
+        <button class="btn-gold" style="flex:2; margin-top:0;" onclick="copiarPrompt()">COPIAR PROMPT</button>
+        <button class="btn-secondary" id="btn-next-step" style="flex:1; margin-top:0; border-color:var(--gold-primary); color:var(--gold-primary);" onclick="avanzarPaso()">SIGUIENTE PASO ➡</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const _k = "RVhJVE8yMDI2";
+
+  function verificarAcceso() {
+    const i = document.getElementById('access_password').value;
+    const e = document.getElementById('login-error');
+    if (btoa(i) === _k) {
+      document.getElementById('login-gate').style.display = 'none';
+      document.getElementById('main-app-content').style.display = 'block';
+      cargarDatosGuardados();
+    } else {
+      e.style.display = 'block';
+    }
+  }
+
+  document.getElementById("access_password").addEventListener("keypress", function(ev) {
+    if (ev.key === "Enter") verificarAcceso();
+  });
+
+  const inputsGuardables = document.querySelectorAll('.save-me');
+  inputsGuardables.forEach(input => {
+    input.addEventListener('input', function() {
+      localStorage.setItem('lp_builder_v3_' + this.id, this.value);
+    });
+  });
+
+  const inputsCheck = document.querySelectorAll('.save-me-check');
+  inputsCheck.forEach(input => {
+    input.addEventListener('change', function() {
+      localStorage.setItem('lp_builder_v3_' + this.id, this.checked);
+      if(this.id === 'ai_color_check') toggleColorSettings();
+    });
+  });
+
+  function cargarDatosGuardados() {
+    inputsGuardables.forEach(input => {
+      const saved = localStorage.getItem('lp_builder_v3_' + input.id);
+      if (saved) input.value = saved;
+    });
+    inputsCheck.forEach(input => {
+      const saved = localStorage.getItem('lp_builder_v3_' + input.id);
+      if (saved !== null) input.checked = (saved === 'true');
+    });
+    toggleColorSettings();
+    toggleMediaInput();
+    const vID = document.getElementById('variant_id');
+    if(vID && vID.value) validarVariant(vID);
+    renderBonusInputs();
+  }
+
+  function borrarDatos() {
+    if(confirm("¿Estás seguro de reiniciar todo?")) {
+      inputsGuardables.forEach(input => localStorage.removeItem('lp_builder_v3_' + input.id));
+      inputsCheck.forEach(input => localStorage.removeItem('lp_builder_v3_' + input.id));
+      location.reload();
+    }
+  }
+
+  function renderBonusInputs() {
+    const qty = parseInt(document.getElementById('cantidad_bonus').value);
+    const container = document.getElementById('bonus-values-container');
+    container.innerHTML = "";
+    for(let i=1; i<=qty; i++) {
+      const input = document.createElement("input");
+      input.type = "number";
+      input.placeholder = `Valor Bonus ${i} ($)`;
+      input.className = "form-input mini-price-input";
+      input.oninput = calcularTotalBonus;
+      container.appendChild(input);
+    }
+    calcularTotalBonus();
+  }
+
+  function calcularTotalBonus() {
+    const inputs = document.querySelectorAll('.mini-price-input');
+    let total = 0;
+    inputs.forEach(inp => {
+      const val = parseFloat(inp.value);
+      if(!isNaN(val)) total += val;
+    });
+    document.getElementById('total-value-display').innerText = `VALOR REAL TOTAL: $${total}`;
+    return total;
+  }
+
+  let pasoActual = 1;
+  const totalPasos = 5;
+
+  function toggleColorSettings() {
+    const isAi = document.getElementById('ai_color_check').checked;
+    const cp = document.getElementById('color_picker');
+    const hl = document.getElementById('hex_label');
+    if (isAi) { cp.disabled = true; hl.style.color = "#666"; hl.innerText = "IA Decidirá"; }
+    else { cp.disabled = false; hl.style.color = "#FFD700"; hl.innerText = cp.value; }
+  }
+
+  function toggleMediaInput() {
+    const v = document.getElementById('media_selector').value;
+    document.getElementById('input-vsl-group').classList.toggle('hidden', v !== 'vsl');
+    document.getElementById('input-mockup-group').classList.toggle('hidden', v !== 'mockup');
+  }
+
+  function validarVariant(el) {
+    const btn = document.getElementById('btn-gen-step1');
+    const err = document.getElementById('variant-error');
+    if (el.value.trim().length < 3) {
+      el.classList.add('input-error');
+      err.style.display = 'block';
+      btn.disabled = true;
+      btn.innerText = "FALTA VARIANT ID";
+      btn.style.opacity = "0.5";
+    } else {
+      el.classList.remove('input-error');
+      err.style.display = 'none';
+      btn.disabled = false;
+      btn.innerText = "GENERAR PASO 1";
+      btn.style.opacity = "1";
+    }
+  }
+
+  function navegar(d) {
+    for (let i = 1; i <= totalPasos; i++) {
+      document.getElementById(`step-${i}-card`).classList.add('hidden');
+      document.getElementById(`p${i}`).classList.remove('active');
+      document.getElementById(`wf-${i}`).classList.remove('active');
+    }
+    document.getElementById(`step-${d}-card`).classList.remove('hidden');
+    for (let i = 1; i <= d; i++) {
+      document.getElementById(`p${i}`).classList.add('active');
+    }
+    document.getElementById(`wf-${d}`).classList.add('active');
+    document.getElementById('result-area').style.display = 'none';
+    pasoActual = d;
+  }
+
+  function avanzarPaso() {
+    if (pasoActual < totalPasos) navegar(pasoActual + 1);
+    else alert("¡Proceso completado!");
+  }
+
+  function copiarPrompt() {
+    const el = document.getElementById("final-prompt");
+    el.select();
+    navigator.clipboard.writeText(el.value);
+    const btn = document.querySelector("#result-area .btn-gold");
+    const originalText = btn.innerText;
+    btn.innerText = "¡COPIADO! ✅";
+    setTimeout(() => { btn.innerText = originalText; }, 2000);
+  }
+
+  function generarPrompt(paso) {
+    if (paso === 1) {
+      const vID = document.getElementById('variant_id').value;
+      if (!vID || vID.trim() === "") {
+        alert("⚠️ ATENCIÓN: Falta el Variant ID.");
+        return;
+      }
+    }
+
+    const tipo = document.getElementById('tipo_producto').value || "[TIPO PRODUCTO]";
+    const desc = document.getElementById('descripcion_producto').value || "[DESCRIPCIÓN]";
+    const variant = document.getElementById('variant_id').value || "[VARIANT_ID]";
+    const isAi = document.getElementById('ai_color_check').checked;
+    const mColor = document.getElementById('color_picker').value;
+    const tipoBoton = document.getElementById('tipo_boton') ? document.getElementById('tipo_boton').value : 'checkout';
+
+    let codigoBotonHtml = "";
+    if (tipoBoton === 'cart') {
+      codigoBotonHtml = `<a href="/cart/add?id=${variant}&quantity=1" class="lp-cta-button" target="_blank">`;
+    } else {
+      codigoBotonHtml = `<a href="/cart/${variant}:1" class="lp-cta-button" target="_blank">`;
+    }
+
+    const cInstr = isAi
+      ? "IMPORTANTE: Elige TÚ el código de color hexadecimal principal."
+      : `El diseño del fondo será de color ${mColor}`;
+    const cRef = isAi ? "la paleta elegida en el paso 1" : mColor;
+
+    const isVsl = document.getElementById('media_selector').value === 'vsl';
+    const mId = isVsl ? document.getElementById('id_vsl').value : document.getElementById('id_mockup').value;
+    let mStr = "";
+
+    if (!mId || mId.trim() === "") {
+      mStr = `ELEMENTO VISUAL AUTOMÁTICO: Busca e inserta una imagen horizontal de alta calidad desde Pexels que represente conceptualmente: "${desc}"`;
+    } else {
+      mStr = isVsl ? `VSL VIMEO ID: ${mId} (titulo y logo ocultos, autoplay, loop).` : `IMAGEN MOCKUP URL: ${mId}`;
+    }
+
+    let pf = "";
+
+    switch(paso) {
+      case 1:
+        pf = `Eres experto programador de landing pages y estás creando una página de venta en Shopify insertando custom liquid directo sin editar el tema.
+IMPORTANTE: Estructura de DOS CAPAS para el CSS:
+1. El contenedor PRINCIPAL debe tener 'width: 100%' para que el fondo de color cubra TODA la pantalla.
+2. DENTRO de ese contenedor, crea un DIV HIJO para el contenido con 'max-width: 1200px' y 'margin: 0 auto' para centrar todo.
+Padding superior: 40px. Fondo continuo sin espacios.
+
+Infoproducto: ${tipo} sobre ${desc}.
+
+ORDEN VERTICAL ESTRICTO (Alineación Centrada):
+
+1. PARA QUIEN: 10px máximo, capsula visual.
+2. PROMESA DIRECTA: 45px máximo (SUMAR PLAZO DE LOGRO).
+3. REFUERZO: 14px debajo del título.
+4. ELEMENTO VISUAL -> ${mStr}. (OBLIGATORIO: Debajo del refuerzo, encima del botón).
+5. BOTÓN CTA: ${tipoBoton}, variant id: ${variant}, formato: ${codigoBotonHtml}
+
+REGLA: TODO CENTRADO VERTICALMENTE.
+${cInstr} (gradiente texturado premium).
+ESTILO DE TEXTO: Aplica efectos de texto gradiente en movimiento (background-clip: text) usando el color principal sobre las palabras clave del título para resaltar el beneficio.
+TIPOGRAFÍA: Importa 3 tipografias premium de Google Fonts que armonicen con el tipo de producto y úsalas jerárquicamente para Títulos, Subtítulos y Cuerpo.`;
+        break;
+      case 2:
+        const qD = document.getElementById('qty_dolores').value;
+        const qB = document.getElementById('qty_beneficios').value;
+        pf = `Estética (${cRef}, estilo limpio). Sección 2:
+Producto: ${tipo} sobre ${desc}.
+
+ESTRUCTURA:
+- REGLA ESTRICTA: Comenzar la sección con padding superior de 20px. Terminar con padding inferior de 20 px.
+- SUBTITULO: Mensaje de empatía sobre el problema apuntado al dolor mas profundo que tiene el cliente ideal.
+- DOLORES: ${qD} puntos (Viñetas Rojas premium).
+- BENEFICIOS: ${qB} puntos (Viñetas Verdes premium).
+- Diseño responsive a 2 columnas en escritorio y lista vertical en móvil. Cada columna con una imagen hero en la parte superior acorde al tipo de producto. Titulo y hero estrictamente centrados y viñetas con texto hacia la izquierda.`;
+        break;
+      case 3:
+        const pT = document.getElementById('precio_tachado').value;
+        const pO = document.getElementById('precio_oferta').value;
+        pf = `Estética (${cRef}, alta conversión). Sección 3:
+- TEXTO DE REFUERZO (Antes que el mockup): Atacar el dolor máximo (${desc}).
+- MOCKUP: Imagen 1:1 centrada acorde al producto (de pexels).
+- PRUEBA: 5 Estrellas emoji + ej: "240+ Alumnos satisfechos".
+- TITULO DEL EBOOK (tamaño mediano)
+- PRECIO: Tachado (${pT}) en gris + OFERTA (${pO}) en grande (dentro de un botón color degrade premium transparente y bordes cuadrados, que el texto entre en una sola linea en version movil).
+- URGENCIA: "ÚLTIMOS 5 CUPOS".
+- CTA: Botón de compra (Variant: ${variant}).
+- GARANTÍA: Garantía de satisfacción de 7 días. Acceso inmediato por mail.
+- CONTADOR INVERSO: 15 minutos (reinicio automático), estilo de urgencia real, con bordes finos brillantes en degrade y con movimiento del color principal, con una leyenda del tipo "si no aprovechas la oferta, pasará a la siguiente persona en espera" dentro del mismo bloque.
+Regla estricta: Todo el contenido de la sección lo quiero centrado verticalmente, en 2 columnas en escritorio, en 1 lista vertical en movil`;
+        break;
+      case 4:
+        const cBo = document.getElementById('cantidad_bonus').value;
+        const totalVal = calcularTotalBonus();
+        let txtAnclaje = "";
+        if (totalVal > 0) {
+          txtAnclaje = `INSTRUCCIÓN DE DISEÑO: Muestra un cartel destacado: "VALOR TOTAL REAL: $${totalVal}" (Tachado) vs "GRATIS HOY".`;
+        }
+
+        pf = `Estética (${cRef}). Sección 4 (Stack de Oferta):
+- TITULO: "LO QUE RECIBES HOY GRATIS".
+- BONUS: ${cBo} tarjetas horizontales. Cada una con: imagen 1:1 hero de pexels (acorde al bonus), Título, Descripción breve, Valor Tachado y etiqueta "GRATIS".
+${txtAnclaje}
+- FRASE: Mensaje de Por qué el cliente debería evitar perderse esta oferta.
+- RESUMEN VISUAL: Mockup de todo el pack (centrado obligatoriamente).
+- CTA FINAL: Botón de compra (Variant: ${variant}).`;
+        break;
+      case 5:
+        const cT = document.getElementById('cantidad_testimonios').value;
+        const cF = document.getElementById('cantidad_faq').value;
+        pf = `Estética (${cRef}). Sección 5 (Cierre):
+- TITULO: "LO QUE DICEN NUESTROS ALUMNOS".
+- TESTIMONIOS: ${cT} Tarjetas en carrousel (Nombre, Estrellas, Foto, Texto persuasivo basado en: ${desc}).
+- FAQ: ${cF} Preguntas frecuentes desplegables (accordion) para romper objeciones de compra.`;
+        break;
+    }
+
+    document.getElementById('final-prompt').value = pf.trim();
+    document.getElementById('result-area').style.display = 'block';
+
+    setTimeout(() => {
+      document.getElementById('result-area').scrollIntoView({behavior: "smooth", block: "center"});
+    }, 100);
+
+    const bn = document.getElementById('btn-next-step');
+    if (paso === 5) {
+      bn.innerText = "¡FINALIZAR!";
+      bn.onclick = function() { alert("¡Felicidades! Has completado la estructura."); };
+    } else {
+      bn.innerText = "SIGUIENTE PASO ➡";
+      bn.onclick = avanzarPaso;
+    }
+  }
+</script>
+
+</body>
+</html>
